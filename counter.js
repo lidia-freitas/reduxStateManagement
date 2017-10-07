@@ -1,5 +1,5 @@
-//REDUCER
-function counter(state, action) {
+// COUNTER REDUCER
+function counterReducer(state, action) {
     if(typeof state === 'undefined'){
         return {count : 0}
     }
@@ -24,14 +24,57 @@ function counter(state, action) {
     }
 }
 
+// TODOS REDUCER
+function todosReducer(state, action) {
+    if (typeof state === 'undefined') {
+        return { todos: [] }
+    }
+    var nextState = Object.assign({}, state);
+
+    switch (action.type) {
+        case 'NEW':
+            nextState.todos.push(action.payload)
+            return nextState;
+            break;
+        case 'DELETE':
+            nextState.todos.pop();
+            return nextState;
+            break;
+        case 'DELETE_ALL':
+            nextState.todos = [];
+            return nextState;
+            break;
+        default:
+            return state;
+    }
+}
+
 //STORE
-var state = { count : 0 }
-var store = Redux.createStore(counter);
+var store = Redux.createStore(Redux.combineReducers(
+    {
+        counterReducer: counterReducer,
+        todosReducer: todosReducer
+    }
+));
+
 var counterEl = document.getElementById('counter');
+var todosInputs = document.getElementById('todos');
+var todosList = document.getElementById('todos-list');
 
 function render() {
     var state = store.getState();
-    counterEl.innerHTML = state.count.toString();
+    counterEl.innerHTML = state.counterReducer.count.toString();
+    renderList(state);
+}
+
+function renderList(state) {
+    todosList.innerHTML = '';
+    for (var i = 0; i < state.todosReducer.todos.length; i++) {
+        var li = document.createElement('li');
+        var todo = state.todosReducer.todos[i];
+        li.innerHTML = todo.toString();
+        todosList.appendChild(li);
+    }
 }
 
 render();
@@ -51,4 +94,19 @@ document.getElementById('minus')
 document.getElementById('reset')
     .addEventListener('click', function () {
         store.dispatch({type: 'RESET'})
+    });
+
+document.getElementById('new')
+    .addEventListener('click', function () {
+            store.dispatch({type: 'NEW', payload: todosInputs.value})
+    });
+
+document.getElementById('delete')
+    .addEventListener('click', function () {
+            store.dispatch({type: 'DELETE' })
+    });
+
+document.getElementById('delete-all')
+    .addEventListener('click', function () {
+            store.dispatch({type: 'DELETE_ALL'})
     });
